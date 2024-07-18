@@ -7,6 +7,7 @@ import (
 
 func main() {
 	app := tview.NewApplication()
+
 	textView := tview.NewTextView().
 		SetText("Welcome to the cap code assistant program!").
 		SetTextAlign(tview.AlignCenter).
@@ -15,6 +16,8 @@ func main() {
 		})
 
 	if err := app.SetRoot(textView, true).Run(); err != nil {
+
 		panic(err)
 	}
+
 }
