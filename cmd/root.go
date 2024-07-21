@@ -1,13 +1,15 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
+	// "context"
+	// "fmt"
 	"os"
 
-	"github.com/henomis/lingoose/llm/antropic"
-	"github.com/henomis/lingoose/thread"
+	// "github.com/henomis/lingoose/llm/antropic"
+	// "github.com/henomis/lingoose/thread"
 	"github.com/spf13/cobra"
+
+	"github.com/isaacphi/codeassistantprogram/cmd/thread"
 )
 
 var rootCmd = &cobra.Command{
@@ -17,32 +19,32 @@ var rootCmd = &cobra.Command{
 WIP`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("args", args)
+	// Run: func(cmd *cobra.Command, args []string) {
+	// 	fmt.Println("args", args)
 
-		antropicllm := antropic.New().WithModel("claude-3-opus-20240229").WithStream(
-			func(response string) {
-				if response != antropic.EOS {
-					fmt.Print(response)
-				} else {
-					fmt.Println()
-				}
-			},
-		)
+	// 	antropicllm := antropic.New().WithModel("claude-3-opus-20240229").WithStream(
+	// 		func(response string) {
+	// 			if response != antropic.EOS {
+	// 				fmt.Print(response)
+	// 			} else {
+	// 				fmt.Println()
+	// 			}
+	// 		},
+	// 	)
 
-		t := thread.New().AddMessage(
-			thread.NewUserMessage().AddContent(
-				thread.NewTextContent("How are you?"),
-			),
-		)
+	// 	t := thread.New().AddMessage(
+	// 		thread.NewUserMessage().AddContent(
+	// 			thread.NewTextContent("How are you?"),
+	// 		),
+	// 	)
 
-		err := antropicllm.Generate(context.Background(), t)
-		if err != nil {
-			panic(err)
-		}
+	// 	err := antropicllm.Generate(context.Background(), t)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		fmt.Println(t)
-	},
+	// 	fmt.Println(t)
+	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -55,6 +57,7 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.AddCommand(thread.ThreadCmd)
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
