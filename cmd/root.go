@@ -1,15 +1,14 @@
 package cmd
 
 import (
-	// "context"
-	// "fmt"
-	"os"
-
-	// "github.com/henomis/lingoose/llm/antropic"
-	// "github.com/henomis/lingoose/thread"
+	"context"
+	"fmt"
+	"github.com/henomis/lingoose/llm/antropic"
+	"github.com/henomis/lingoose/thread"
+	cmdThread "github.com/isaacphi/codeassistantprogram/cmd/thread"
+	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
-
-	"github.com/isaacphi/codeassistantprogram/cmd/thread"
+	"os"
 )
 
 var rootCmd = &cobra.Command{
@@ -19,32 +18,42 @@ var rootCmd = &cobra.Command{
 WIP`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	fmt.Println("args", args)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// Get thread
+		tr, err := models.GetCurrentThread()
+		if err != nil {
+			fmt.Errorf("Error fetching current thread\n%v", err)
+		}
+		fmt.Println("Thread:", tr)
 
-	// 	antropicllm := antropic.New().WithModel("claude-3-opus-20240229").WithStream(
-	// 		func(response string) {
-	// 			if response != antropic.EOS {
-	// 				fmt.Print(response)
-	// 			} else {
-	// 				fmt.Println()
-	// 			}
-	// 		},
-	// 	)
+		// Create LLM thread
+		antropicllm := antropic.New().WithModel("claude-3-opus-20240229").WithStream(
+			func(response string) {
+				if response != antropic.EOS {
+					fmt.Print(response)
+					fmt.Print(".")
+				} else {
+					fmt.Println()
+				}
+			},
+		)
+		t := thread.New().AddMessage(
+			thread.NewUserMessage().AddContent(
+				thread.NewTextContent("How are you?"),
+			),
+		)
 
-	// 	t := thread.New().AddMessage(
-	// 		thread.NewUserMessage().AddContent(
-	// 			thread.NewTextContent("How are you?"),
-	// 		),
-	// 	)
+		// Make LLM request
+		err = antropicllm.Generate(context.Background(), t)
+		if err != nil {
+			return err
+		}
 
-	// 	err := antropicllm.Generate(context.Background(), t)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	fmt.Println(t)
-	// },
+		// Save answer
+		lastMessage := t.LastMessage().Contents[0].AsString()
+		fmt.Print(lastMessage)
+		return nil
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -57,7 +66,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(thread.ThreadCmd)
+	rootCmd.AddCommand(cmdThread.ThreadCmd)
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.

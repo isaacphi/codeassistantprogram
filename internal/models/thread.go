@@ -64,3 +64,15 @@ func SetCurrentThread(nameOrId string) (*Thread, error) {
 	fileio.SaveFile(config.DataDirectory, "HEAD", thread.GetName())
 	return thread, nil
 }
+
+func GetCurrentThread() (*Thread, error) {
+	threadName, err := fileio.LoadFile(config.DataDirectory, "HEAD")
+	if err != nil {
+		return nil, err
+	}
+	thread, err := LoadThread(threadName, config.DataDirectory)
+	if err != nil {
+		return nil, err
+	}
+	return thread, nil
+}

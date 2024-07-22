@@ -18,6 +18,15 @@ func SaveFile(basePath, name string, contents string) error {
 	return os.WriteFile(filePath, []byte(contents), 0644)
 }
 
+func LoadFile(basePath, name string) (string, error) {
+	filePath := filepath.Join(basePath, name)
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 func SaveYAML(data interface{}, basePath, subdir, id string) error {
 	yamlData, err := yaml.Marshal(data)
 	if err != nil {
