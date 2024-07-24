@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 )
 
