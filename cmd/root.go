@@ -1,63 +1,62 @@
 package cmd
 
 import (
-	"context"
+	"bufio"
 	"fmt"
-	"github.com/henomis/lingoose/llm/antropic"
-	"github.com/henomis/lingoose/thread"
-	cmdThread "github.com/isaacphi/codeassistantprogram/cmd/thread"
+	"github.com/isaacphi/codeassistantprogram/cmd/thread"
+	"github.com/isaacphi/codeassistantprogram/internal/config"
+	"github.com/isaacphi/codeassistantprogram/internal/llm"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "cap",
 	Short: "The cap code assistant program",
-	Long: `Use cap to interact with LLMs using branching threads
-WIP`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	Long:  `Use cap to interact with LLMs using branching threads. WIP`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Get thread
-		tr, err := models.GetCurrentThread()
-		if err != nil {
-			fmt.Errorf("Error fetching current thread\n%v", err)
-		}
-		fmt.Println("Thread:", tr)
-
-		// Create LLM thread
-		antropicllm := antropic.New().WithModel("claude-3-opus-20240229").WithStream(
-			func(response string) {
-				if response != antropic.EOS {
-					fmt.Print(response)
-					fmt.Print(".")
-				} else {
-					fmt.Println()
-				}
-			},
-		)
-		t := thread.New().AddMessage(
-			thread.NewUserMessage().AddContent(
-				thread.NewTextContent("How are you?"),
-			),
-		)
-
-		// Make LLM request
-		err = antropicllm.Generate(context.Background(), t)
+		input, err := getInput()
 		if err != nil {
 			return err
 		}
 
-		// Save answer
-		lastMessage := t.LastMessage().Contents[0].AsString()
-		fmt.Print(lastMessage)
+		tr, err := models.GetCurrentThread()
+		if err != nil {
+			fmt.Errorf("Error fetching current thread\n%v", err)
+		}
+
+		userMessage, err := models.NewMessage(input, "user")
+		if err != nil {
+			return err
+		}
+		userMessage.Save(config.DataDirectory)
+		tr.AddMessage(userMessage)
+		tr.Save(config.DataDirectory)
+
+		llm := llm.New("claude-3-opus-20240229")
+		llm.LoadThread(tr)
+
+		response, err := llm.GenerateResponse()
+		if err != nil {
+			return err
+		}
+
+		assistantMessage, err := models.NewMessage(response, "assistant")
+		if err != nil {
+			return err
+		}
+		assistantMessage.Save(config.DataDirectory)
+		tr.AddMessage(assistantMessage)
+		tr.Save(config.DataDirectory)
+
 		return nil
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -66,7 +65,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(cmdThread.ThreadCmd)
+	rootCmd.AddCommand(thread.ThreadCmd)
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
@@ -76,4 +75,51 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func getInput() (string, error) {
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		// Data is being piped to stdin
+		reader := bufio.NewReader(os.Stdin)
+		var builder strings.Builder
+		_, err := io.Copy(&builder, reader)
+		if err != nil {
+			return "", err
+		}
+		return strings.TrimSpace(builder.String()), nil
+	}
+
+	// No data piped, open editor
+	return openEditor()
+}
+
+func openEditor() (string, error) {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "nano"
+	}
+
+	tempFile, err := os.CreateTemp(config.DataDirectory, "input-*.txt")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(tempFile.Name())
+
+	cmd := exec.Command(editor, tempFile.Name())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		return "", err
+	}
+
+	content, err := os.ReadFile(tempFile.Name())
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(content)), nil
 }

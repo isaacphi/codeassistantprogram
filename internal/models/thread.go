@@ -9,9 +9,10 @@ import (
 )
 
 type Thread struct {
-	ID        string
-	CreatedAt time.Time
-	Name      string
+	ID         string
+	CreatedAt  time.Time
+	Name       string
+	MessageIDs []string
 }
 
 func (t *Thread) Save(basePath string) error {
@@ -24,6 +25,7 @@ func (t *Thread) Save(basePath string) error {
 
 func (t *Thread) Delete(basePath string) error {
 	return fileio.DeleteFile(basePath, "threads", t.ID)
+	return nil
 }
 
 func (t *Thread) GetName() string {
@@ -31,6 +33,21 @@ func (t *Thread) GetName() string {
 		return t.Name
 	}
 	return t.ID
+}
+
+func (t *Thread) AddMessage(message *Message) {
+	t.MessageIDs = append(t.MessageIDs, message.ID)
+}
+
+func (t *Thread) View() error {
+	for _, messageID := range t.MessageIDs {
+		message, err := LoadMessage(messageID, config.DataDirectory)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%v: %v\n", message.Type, message.Content)
+	}
+	return nil
 }
 
 func NewThread(name string) (*Thread, error) {
@@ -47,9 +64,9 @@ func NewThread(name string) (*Thread, error) {
 }
 
 func LoadThread(id string, basePath string) (*Thread, error) {
-	var thread Thread
-	err := fileio.LoadYAML(&thread, basePath, "threads", id)
-	return &thread, err
+	var t Thread
+	err := fileio.LoadYAML(&t, basePath, "threads", id)
+	return &t, err
 }
 
 func ListThreads(basePath string) ([]string, error) {
