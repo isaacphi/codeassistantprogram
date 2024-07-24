@@ -22,7 +22,13 @@ var newCmd = &cobra.Command{
 			return fmt.Errorf("Error creating new thread\n%v", err)
 		}
 		thread.Save(config.DataDirectory)
-		fmt.Println("Created thread:", thread)
+
+		thread, err = models.SetCurrentThread(name)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Created and switched to thread:", thread)
+
 		return nil
 	},
 }

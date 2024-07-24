@@ -7,6 +7,7 @@ import (
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/llm"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
+	"github.com/isaacphi/codeassistantprogram/internal/ui"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
@@ -90,36 +91,10 @@ func getInput() (string, error) {
 		return strings.TrimSpace(builder.String()), nil
 	}
 
-	// No data piped, open editor
-	return openEditor()
-}
-
-func openEditor() (string, error) {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "nano"
-	}
-
-	tempFile, err := os.CreateTemp(config.DataDirectory, "input-*.txt")
+	// No data piped, prompt user for input
+	input, err := ui.GetInput()
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(tempFile.Name())
-
-	cmd := exec.Command(editor, tempFile.Name())
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err = cmd.Run()
-	if err != nil {
-		return "", err
-	}
-
-	content, err := os.ReadFile(tempFile.Name())
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(string(content)), nil
+	return input, nil
 }
