@@ -74,6 +74,7 @@ func ListThreads(basePath string) ([]string, error) {
 }
 
 func SetCurrentThread(nameOrId string) (*Thread, error) {
+	// TODO: pass in Thread, not name
 	thread, err := LoadThread(nameOrId, config.DataDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't find thread %v\n%v", nameOrId, err)
