@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/isaacphi/codeassistantprogram/cmd/thread"
+	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/llm"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/isaacphi/codeassistantprogram/internal/ui"
@@ -15,9 +16,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "cap",
-	Short: "The cap code assistant program",
-	Long:  `Use cap to interact with LLMs using branching threads. WIP`,
+	Use:     "cap",
+	Short:   "The cap code assistant program",
+	Long:    `Use cap to interact with LLMs using branching threads. WIP`,
+	Version: config.Version,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Send a message to the current thread
 
