@@ -1,6 +1,15 @@
 # cap code assistant program
 
-This is a simple CLI tool for interacting with LLMs using branching threads. WIP
+This is a simple CLI tool for interacting with LLMs using branching threads. Alpha quality / WIP
+
+## Installation
+
+```bash
+brew tap isaacphi/cap
+brew install cap
+```
+
+Or clone this repository and run `go build -o cap` and use the `./cap` executable.
 
 ## Usage
 
