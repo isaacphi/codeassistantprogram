@@ -6,8 +6,7 @@ import (
 
 var ThreadCmd = &cobra.Command{
 	Use:   "thread",
-	Short: "Thread subcommands",
-	Long:  "Manage threads",
+	Short: "Manage threads",
 }
 
 func init() {

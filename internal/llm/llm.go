@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/henomis/lingoose/llm/antropic"
-	"github.com/henomis/lingoose/thread"
+	lingooseThread "github.com/henomis/lingoose/thread"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 )
 
 type LLM struct {
 	model       string
 	providerLLM *antropic.Antropic
-	thread      *thread.Thread
+	llmThread   *lingooseThread.Thread
 }
 
 func New(model string) *LLM {
@@ -26,28 +26,28 @@ func New(model string) *LLM {
 		},
 	)
 
-	t := thread.New()
+	t := lingooseThread.New()
 
 	return &LLM{
 		model:       model,
 		providerLLM: providerLLM,
-		thread:      t,
+		llmThread:   t,
 	}
 }
 
 func (llm *LLM) AddMessage(messageContents string, messageType string) error {
 	switch messageType {
 	case "user":
-		llm.thread.AddMessage(
-			thread.NewUserMessage().AddContent(
-				thread.NewTextContent(messageContents),
+		llm.llmThread.AddMessage(
+			lingooseThread.NewUserMessage().AddContent(
+				lingooseThread.NewTextContent(messageContents),
 			),
 		)
 		return nil
 	case "assistant":
-		llm.thread.AddMessage(
-			thread.NewAssistantMessage().AddContent(
-				thread.NewTextContent(messageContents),
+		llm.llmThread.AddMessage(
+			lingooseThread.NewAssistantMessage().AddContent(
+				lingooseThread.NewTextContent(messageContents),
 			),
 		)
 		return nil
@@ -57,15 +57,15 @@ func (llm *LLM) AddMessage(messageContents string, messageType string) error {
 }
 
 func (llm *LLM) GenerateResponse() (string, error) {
-	err := llm.providerLLM.Generate(context.Background(), llm.thread)
+	err := llm.providerLLM.Generate(context.Background(), llm.llmThread)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate response: %w", err)
 	}
-	return llm.thread.LastMessage().Contents[0].AsString(), nil
+	return llm.llmThread.LastMessage().Contents[0].AsString(), nil
 }
 
 func (llm *LLM) LoadThread(t *models.Thread) error {
-	llm.thread.ClearMessages()
+	llm.llmThread.ClearMessages()
 	for _, messageID := range t.MessageIDs {
 		message, err := models.LoadMessage(messageID)
 		if err != nil {

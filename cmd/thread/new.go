@@ -25,7 +25,7 @@ var newCmd = &cobra.Command{
 
 		err = thread.SetCurrent()
 		if err != nil {
-			return err
+			return fmt.Errorf("error setting current thread: %w", err)
 		}
 		fmt.Println("Created and switched to thread:", thread)
 
