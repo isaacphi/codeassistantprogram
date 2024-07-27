@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/storage/fileio"
 )
 
@@ -15,11 +16,13 @@ type Message struct {
 	Type      string
 }
 
-func (m *Message) Save(basePath string) error {
+func (m *Message) Save() error {
+	basePath := config.DataDirectory
 	return fileio.SaveYAML(m, basePath, "messages", m.ID)
 }
 
-func (m *Message) Delete(basePath string) error {
+func (m *Message) Delete() error {
+	basePath := config.DataDirectory
 	return fileio.DeleteFile(basePath, "messages", m.ID)
 }
 
@@ -41,8 +44,12 @@ func NewMessage(content string, messageType string) (*Message, error) {
 	}, nil
 }
 
-func LoadMessage(id string, basePath string) (*Message, error) {
+func LoadMessage(id string) (*Message, error) {
+	basePath := config.DataDirectory
 	var m Message
 	err := fileio.LoadYAML(&m, basePath, "messages", id)
-	return &m, err
+	if err != nil {
+		return nil, fmt.Errorf("failed to load message: %w", err)
+	}
+	return &m, nil
 }

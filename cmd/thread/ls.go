@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +14,7 @@ var lsCmd = &cobra.Command{
 	Long:  `List threads`,
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		threads, err := models.ListThreads(config.DataDirectory)
+		threads, err := models.ListThreads()
 		if os.IsNotExist(err) {
 			return fmt.Errorf("no threads found: %w", err)
 		} else if err != nil {

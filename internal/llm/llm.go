@@ -6,7 +6,6 @@ import (
 
 	"github.com/henomis/lingoose/llm/antropic"
 	"github.com/henomis/lingoose/thread"
-	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 )
 
@@ -60,7 +59,7 @@ func (llm *LLM) AddMessage(messageContents string, messageType string) error {
 func (llm *LLM) GenerateResponse() (string, error) {
 	err := llm.providerLLM.Generate(context.Background(), llm.thread)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate response: %w", err)
 	}
 	return llm.thread.LastMessage().Contents[0].AsString(), nil
 }
@@ -68,11 +67,14 @@ func (llm *LLM) GenerateResponse() (string, error) {
 func (llm *LLM) LoadThread(t *models.Thread) error {
 	llm.thread.ClearMessages()
 	for _, messageID := range t.MessageIDs {
-		message, err := models.LoadMessage(messageID, config.DataDirectory)
+		message, err := models.LoadMessage(messageID)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to load message %v: %w", messageID, err)
 		}
-		llm.AddMessage(message.Content, message.Type)
+		err = llm.AddMessage(message.Content, message.Type)
+		if err != nil {
+			return fmt.Errorf("failed to add message to LLM %v: %w", messageID, err)
+		}
 	}
 	return nil
 }

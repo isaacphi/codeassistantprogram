@@ -1,7 +1,16 @@
 package main
 
-import "github.com/isaacphi/codeassistantprogram/cmd"
+import (
+	"log"
+
+	"github.com/isaacphi/codeassistantprogram/cmd"
+	"github.com/joho/godotenv"
+)
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	cmd.Execute()
 }

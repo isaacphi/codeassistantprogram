@@ -12,11 +12,15 @@ var useCmd = &cobra.Command{
 	Short: "Switch active thread",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		thread, err := models.SetCurrentThread(args[0])
+		t, err := models.LoadThread(args[0])
+		if err != nil {
+			return fmt.Errorf("error loading thread: %w", err)
+		}
+		err = t.SetCurrent()
 		if err != nil {
 			return fmt.Errorf("error switching to thread: %w", err)
 		}
-		fmt.Println("Switched to thread:", thread)
+		fmt.Println("Switched to thread:", t)
 		return nil
 	},
 }

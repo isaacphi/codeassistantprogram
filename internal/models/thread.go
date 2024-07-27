@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/isaacphi/codeassistantprogram/internal/config"
-	"github.com/isaacphi/codeassistantprogram/internal/storage/fileio"
+	fileio "github.com/isaacphi/codeassistantprogram/internal/storage/fileio"
 )
 
 type Thread struct {
@@ -16,7 +16,8 @@ type Thread struct {
 	MessageIDs []string
 }
 
-func (t *Thread) Save(basePath string) error {
+func (t *Thread) Save() error {
+	basePath := config.DataDirectory
 	name := t.ID
 	if t.Name != "" {
 		name = t.Name
@@ -24,8 +25,16 @@ func (t *Thread) Save(basePath string) error {
 	return fileio.SaveYAML(t, basePath, "threads", name)
 }
 
-func (t *Thread) Delete(basePath string) error {
-	return fileio.DeleteFile(basePath, "threads", t.ID)
+func (t *Thread) Delete() error {
+	basePath := config.DataDirectory
+	err := fileio.DeleteFile(basePath, "threads", t.ID)
+	if err != nil {
+		err = fileio.DeleteFile(basePath, "threads", t.Name)
+		if err != nil {
+			return fmt.Errorf("failed to delete thread %q: %w", t.ID, err)
+		}
+	}
+	return nil
 }
 
 func (t *Thread) GetName() string {
@@ -41,11 +50,19 @@ func (t *Thread) AddMessage(message *Message) {
 
 func (t *Thread) View() error {
 	for _, messageID := range t.MessageIDs {
-		message, err := LoadMessage(messageID, config.DataDirectory)
+		message, err := LoadMessage(messageID)
 		if err != nil {
 			return err
 		}
 		fmt.Printf("%v: %v\n", message.Type, message.Content)
+	}
+	return nil
+}
+
+func (t *Thread) SetCurrent() error {
+	err := fileio.SaveFile(config.DataDirectory, "HEAD", t.GetName())
+	if err != nil {
+		return fmt.Errorf("failed to save thread %q: %w", t.GetName(), err)
 	}
 	return nil
 }
@@ -63,24 +80,16 @@ func NewThread(name string) (*Thread, error) {
 	}, nil
 }
 
-func LoadThread(id string, basePath string) (*Thread, error) {
+func LoadThread(id string) (*Thread, error) {
+	basePath := config.DataDirectory
 	var t Thread
 	err := fileio.LoadYAML(&t, basePath, "threads", id)
 	return &t, err
 }
 
-func ListThreads(basePath string) ([]string, error) {
+func ListThreads() ([]string, error) {
+	basePath := config.DataDirectory
 	return fileio.ListFiles(basePath, "threads")
-}
-
-func SetCurrentThread(nameOrId string) (*Thread, error) {
-	// TODO: pass in Thread, not name
-	thread, err := LoadThread(nameOrId, config.DataDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load thread %q: %w", nameOrId, err)
-	}
-	fileio.SaveFile(config.DataDirectory, "HEAD", thread.GetName())
-	return thread, nil
 }
 
 func GetCurrentThread() (*Thread, error) {
@@ -88,7 +97,7 @@ func GetCurrentThread() (*Thread, error) {
 	if err != nil {
 		return nil, err
 	}
-	thread, err := LoadThread(threadName, config.DataDirectory)
+	thread, err := LoadThread(threadName)
 	if err != nil {
 		return nil, err
 	}
