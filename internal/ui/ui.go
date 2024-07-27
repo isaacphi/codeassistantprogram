@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -10,7 +12,7 @@ func GetInput() (string, error) {
 
 	finalModel, err := p.Run()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get input: %w", err)
 	}
 
 	return finalModel.(TextInputModel).textinput.Value(), nil

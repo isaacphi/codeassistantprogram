@@ -2,6 +2,7 @@ package thread
 
 import (
 	"fmt"
+
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
@@ -19,7 +20,7 @@ var newCmd = &cobra.Command{
 		}
 		thread, err := models.NewThread(name)
 		if err != nil {
-			return fmt.Errorf("Error creating new thread\n%v", err)
+			return fmt.Errorf("error creating new thread: %w", err)
 		}
 		thread.Save(config.DataDirectory)
 

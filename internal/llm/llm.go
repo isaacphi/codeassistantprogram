@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
+
 	"github.com/henomis/lingoose/llm/antropic"
 	"github.com/henomis/lingoose/thread"
 	"github.com/isaacphi/codeassistantprogram/internal/config"

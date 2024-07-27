@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/storage/fileio"
-	"time"
 )
 
 type Thread struct {
@@ -25,7 +26,6 @@ func (t *Thread) Save(basePath string) error {
 
 func (t *Thread) Delete(basePath string) error {
 	return fileio.DeleteFile(basePath, "threads", t.ID)
-	return nil
 }
 
 func (t *Thread) GetName() string {
@@ -53,7 +53,7 @@ func (t *Thread) View() error {
 func NewThread(name string) (*Thread, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate UUID: %w", err)
+		return nil, fmt.Errorf("failed to generate UUID: %w", err)
 	}
 
 	return &Thread{
@@ -77,7 +77,7 @@ func SetCurrentThread(nameOrId string) (*Thread, error) {
 	// TODO: pass in Thread, not name
 	thread, err := LoadThread(nameOrId, config.DataDirectory)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't find thread %v\n%v", nameOrId, err)
+		return nil, fmt.Errorf("failed to load thread %q: %w", nameOrId, err)
 	}
 	fileio.SaveFile(config.DataDirectory, "HEAD", thread.GetName())
 	return thread, nil

@@ -2,6 +2,7 @@ package thread
 
 import (
 	"fmt"
+
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
@@ -15,10 +16,12 @@ var deleteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		thread, err := models.LoadThread(args[0], config.DataDirectory)
 		if err != nil {
-			return fmt.Errorf("Couldn't find thread %v\n%v", args[0], err)
+			return fmt.Errorf("failed to load thread %q: %w", args[0], err)
 		}
-		thread.Delete(config.DataDirectory)
-		fmt.Println("Deleted thread:", thread)
+		if err := thread.Delete(config.DataDirectory); err != nil {
+			return fmt.Errorf("failed to delete thread %q: %w", args[0], err)
+		}
+		fmt.Printf("Deleted thread: %s\n", thread)
 		return nil
 	},
 }

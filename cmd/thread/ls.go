@@ -2,10 +2,11 @@ package thread
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var lsCmd = &cobra.Command{
@@ -16,9 +17,9 @@ var lsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		threads, err := models.ListThreads(config.DataDirectory)
 		if os.IsNotExist(err) {
-			return fmt.Errorf("No threads found\n")
+			return fmt.Errorf("no threads found: %w", err)
 		} else if err != nil {
-			return fmt.Errorf("Error listing threads\n%v", err)
+			return fmt.Errorf("error listing threads: %w", err)
 		}
 		for _, thread := range threads {
 			fmt.Printf("%v\n", thread)

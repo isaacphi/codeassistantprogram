@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/isaacphi/codeassistantprogram/internal/storage/fileio"
-	"time"
 )
 
 type Message struct {
@@ -29,7 +30,7 @@ func NewMessage(content string, messageType string) (*Message, error) {
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate UUID: %w", err)
+		return nil, fmt.Errorf("failed to generate UUID: %w", err)
 	}
 
 	return &Message{

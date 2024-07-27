@@ -2,6 +2,7 @@ package thread
 
 import (
 	"fmt"
+
 	"github.com/isaacphi/codeassistantprogram/internal/config"
 	"github.com/isaacphi/codeassistantprogram/internal/models"
 	"github.com/spf13/cobra"
@@ -19,19 +20,19 @@ var branchCmd = &cobra.Command{
 
 		currentThread, err := models.GetCurrentThread()
 		if err != nil {
-			fmt.Errorf("Error fetching current thread\n%v", err)
+			return fmt.Errorf("error fetching current thread: %w", err)
 		}
 
 		newThread, err := models.NewThread(name)
 		newThread.MessageIDs = currentThread.MessageIDs
 		if err != nil {
-			return fmt.Errorf("Error creating new thread\n%v", err)
+			return fmt.Errorf("error creating new thread:%w", err)
 		}
 		newThread.Save(config.DataDirectory)
 
 		thread, err := models.SetCurrentThread(name)
 		if err != nil {
-			return err
+			return fmt.Errorf("error setting current thread: %w", err)
 		}
 		fmt.Println("Created and switched to thread:", thread)
 
